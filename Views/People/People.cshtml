@@ -1,0 +1,119 @@
+﻿@{
+    ViewBag.Title = "Server-side Pagination with Div Table";
+}
+
+<h2>People</h2>
+
+<style>
+    #pagination button {
+        margin: 0 3px;
+        padding: 5px 10px;
+        border: 1px solid #ccc;
+        background-color: #f8f8f8;
+        cursor: pointer;
+    }
+
+        #pagination button[disabled] {
+            background-color: #ddd;
+            font-weight: bold;
+            cursor: default;
+        }
+
+    #pagination span {
+        margin: 0 5px;
+    }
+</style>
+
+
+<div id="table-body" style="border: 1px solid #ccc;"></div>
+<div id="pagination" style="margin-top: 10px;"></div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    var pageSize = 10;
+
+    function loadTable(page) {
+        $.get('/People/LoadData',
+            { page: page, pageSize: pageSize }, function (response)
+        {
+            $('#table-body').empty();
+
+                response.data.forEach(item => {
+                    debugger;
+                $('#table-body').append(`
+                    <div class="row" id=${item.Id} style="display: flex; border-bottom: 1px solid #eee; padding: 8px;">
+                        <div class="col" style="flex: 1;">${item.Id}</div>
+                        <div class="col" style="flex: 2;">${item.Name}</div>
+                    </div>
+                `);
+            });
+
+            renderPagination(response.total, page);
+        });
+    }
+
+    //function renderPagination(total, currentPage) {
+    //    const pageCount = Math.ceil(total / pageSize);
+    //    let html = '';
+
+    //    for (let i = 1; i <= pageCount; i++) {
+    //        html += `<button onclick="loadTable(${i})" style="margin-right:5px;" ${i === currentPage ? 'disabled' : ''}>${i}</button>`;
+    //    }
+
+    //    $('#pagination').html(html);
+    //}
+
+    $(document).ready(function () {
+        loadTable(1);
+    });
+
+
+
+    function renderPagination(total, currentPage) {
+        const pageSize = 10;
+        const pageCount = Math.ceil(total / pageSize);
+        let html = '';
+
+        const maxVisible = 5; // Show max 5 page links around current
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        let endPage = Math.min(pageCount, startPage + maxVisible - 1);
+
+        // Adjust startPage if we are near the end
+        if (endPage - startPage < maxVisible - 1) {
+            startPage = Math.max(1, endPage - maxVisible + 1);
+        }
+
+        // Previous button
+        if (currentPage > 1) {
+            html += `<button onclick="loadTable(${currentPage - 1})">« Prev</button>`;
+        }
+
+        // Show first page and ellipsis if needed
+        if (startPage > 1) {
+            html += `<button onclick="loadTable(1)">1</button>`;
+            if (startPage > 2) {
+                html += `<span>...</span>`;
+            }
+        }
+
+        // Page buttons
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button onclick="loadTable(${i})" ${i === currentPage ? 'disabled style="font-weight:bold;"' : ''}>${i}</button>`;
+        }
+
+        // Show last page and ellipsis if needed
+        if (endPage < pageCount) {
+            if (endPage < pageCount - 1) {
+                html += `<span>...</span>`;
+            }
+            html += `<button onclick="loadTable(${pageCount})">${pageCount}</button>`;
+        }
+
+        // Next button
+        if (currentPage < pageCount) {
+            html += `<button onclick="loadTable(${currentPage + 1})">Next »</button>`;
+        }
+
+        $('#pagination').html(html);
+    }
+</script>
