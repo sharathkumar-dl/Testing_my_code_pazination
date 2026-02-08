@@ -54,7 +54,7 @@ namespace Test_dev_pagination
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
-			--tesr
+			
         }
     }
 }
